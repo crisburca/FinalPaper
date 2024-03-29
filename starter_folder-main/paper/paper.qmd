@@ -6,8 +6,12 @@ thanks: "Code and data are available at: LINK."
 date: today
 date-format: long
 abstract: "First sentence. Second sentence. Third sentence. Fourth sentence. :D"
-format: pdf
+format: 
+  pdf:
+    documentclass: article
+    geometry: margin = 1in
 number-sections: true
+toc: true
 bibliography: references.bib
 ---
 
@@ -17,8 +21,12 @@ bibliography: references.bib
 #| message: false
 
 library(tinytex)
+library(readr)
 library(tidyverse)
+library(dplyr)
+library(tibble)
 library(rstanarm)
+library(modelsummary)
 ```
 
 ```{r}
@@ -26,16 +34,206 @@ library(rstanarm)
 #| warning: false
 #| message: false
 
-#data_2018 <- read.csv("2018_LoL_esports_match_data_from_OraclesElixir.csv")
-#data_2019 <- read.csv("2019_LoL_esports_match_data_from_OraclesElixir.csv")
-#data_2020 <- read.csv("2020_LoL_esports_match_data_from_OraclesElixir.csv")
-#data_2021 <- read.csv("2021_LoL_esports_match_data_from_OraclesElixir.csv")
-#data_2022 <- read.csv("2022_LoL_esports_match_data_from_OraclesElixir.csv")
-#data_2023 <- read.csv("2023_LoL_esports_match_data_from_OraclesElixir.csv")
+data_2018 <- read.csv("/Users/hughm/OneDrive/Desktop/FinalPaper/starter_folder-main/paper/2018_LoL_esports_match_data_from_OraclesElixir.csv")
+data_2019 <- read.csv("/Users/hughm/OneDrive/Desktop/FinalPaper/starter_folder-main/paper/2019_LoL_esports_match_data_from_OraclesElixir.csv")
+data_2020 <- read.csv("/Users/hughm/OneDrive/Desktop/FinalPaper/starter_folder-main/paper/2020_LoL_esports_match_data_from_OraclesElixir.csv")
+data_2021 <- read.csv("/Users/hughm/OneDrive/Desktop/FinalPaper/starter_folder-main/paper/2021_LoL_esports_match_data_from_OraclesElixir.csv")
+data_2022 <- read.csv("/Users/hughm/OneDrive/Desktop/FinalPaper/starter_folder-main/paper/2022_LoL_esports_match_data_from_OraclesElixir.csv")
+data_2023 <- read.csv("/Users/hughm/OneDrive/Desktop/FinalPaper/starter_folder-main/paper/2023_LoL_esports_match_data_from_OraclesElixir.csv")
 ```
 
 
 ```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+lol_data <- rbind(data_2018, data_2019, data_2020, data_2021, data_2022, data_2023)
+champion_to_category <- c("Akali" = "Assassin", "Briar" = "Assassin", "Ekko" = "Assassin", "Elise" = "Assassin", "Evelynn" = "Assassin", "Fizz" = "Assassin", "Kassadin" = "Assassin", "Katarina" = "Assassin", "Kayn" = "Assassin", "Kha'Zix" = "Assassin", "Naafiri" = "Assassin", "Nidalee" = "Assassin", "Nocturne" = "Assassin", "Pyke" = "Assassin", "Qiyana" = "Assassin", "Rengar" = "Assassin", "Shaco" = "Assassin", "Sylas" = "Assassin", "Talon" = "Assassin", "Zed" = "Assassin", "Aatrox" = "Fighter", "Bel'Veth" = "Fighter", "Camille" = "Fighter", "Darius" = "Fighter", "Diana" = "Fighter", "Fiora" = "Fighter", "Gangplank" = "Fighter", "Garen" = "Fighter", "Gnar" = "Fighter", "Gragas" = "Fighter", "Gwen" = "Fighter", "Hecarim" = "Fighter", "Irelia" = "Fighter", "Jarvan IV" = "Fighter", "Jax" = "Fighter", "Jayce" = "Fighter", "Kayle" = "Fighter", "Lee Sin" = "Fighter", "Master Yi" = "Fighter", "Mordekaiser" = "Fighter", "Nasus" = "Fighter","Nilah" = "Fighter", "Nunu & Willump" = "Fighter", "Olaf" = "Fighter", "Ornn" = "Fighter", "Pantheon" = "Fighter", "Rek'Sai" = "Fighter", "Renekton" = "Fighter", "Riven" = "Fighter","Samira" = "Fighter", "Sett" = "Fighter", "Shyvana" = "Fighter", "Trundle" = "Fighter", "Tryndamere" = "Fighter", "Udyr" = "Fighter", "Vi" = "Fighter", "Viego" = "Fighter", "Volibear" = "Fighter", "Warwick" = "Fighter", "Wukong" = "Fighter", "Xin Zhao" = "Fighter", "Yasuo" = "Fighter", "Yone" = "Fighter", "Ahri" = "Mage", "Anivia" = "Mage", "Annie" = "Mage", "Aurelion Sol" = "Mage", "Azir" = "Mage", "Brand" = "Mage", "Cassiopeia" = "Mage", "Fiddlesticks" = "Mage", "Heimerdinger" = "Mage", "Ivern" = "Mage", "Karma" = "Mage", "Karthus" = "Mage", "Kennen" = "Mage", "LeBlanc" = "Mage", "Lillia" = "Mage", "Lissandra" = "Mage", "Lux" = "Mage", "Malzahar" = "Mage", "Morgana" = "Mage", "Neeko" = "Mage", "Orianna" = "Mage", "Rumble" = "Mage", "Ryze" = "Mage", "Swain" = "Mage", "Syndra" = "Mage", "Taliyah" = "Mage", "Twisted Fate" = "Mage", "Veigar" = "Mage", "Vel'Koz" = "Mage", "Vex" = "Mage", "Viktor" = "Mage", "Vladimir" = "Mage", "Xerath" = "Mage", "Ziggs" = "Mage", "Zoe" = "Mage", "Zyra" = "Mage", "Akshan" = "Marksman", "Aphelios" = "Marksman", "Ashe" = "Marksman", "Caitlyn" = "Marksman", "Corki" = "Marksman", "Draven" = "Marksman", "Ezreal" = "Marksman", "Graves" = "Marksman", "Jhin" = "Marksman", "Jinx" = "Marksman", "Kai'Sa" = "Marksman", "Kalista" = "Marksman", "Kindred" = "Marksman", "Kog'Maw" = "Marksman", "Lucian" = "Marksman", "Miss Fortune" = "Marksman", "Quinn" = "Marksman", "Senna" = "Marksman", "Sivir" = "Marksman", "Teemo" = "Marksman", "Tristana" = "Marksman", "Twitch" = "Marksman", "Varus" = "Marksman", "Vayne" = "Marksman", "Xayah" = "Marksman", "Zeri" = "Marksman", "Alistar" = "Support", "Bard" = "Support", "Blitzcrank" = "Support", "Braum" = "Support", "Janna" = "Support", "Leona" = "Support", "Lulu" = "Support", "Milio" = "Support", "Nami" = "Support", "Nautilus" = "Support", "Rakan" = "Support", "Renata Glasc" = "Support", "Seraphine" = "Support", "Sona" = "Support", "Soraka" = "Support", "Taric" = "Support", "Thresh" = "Support", "Yuumi" = "Support", "Zilean" = "Support", "Amumu" = "Tank", "Cho'Gath" = "Tank", "Dr. Mundo" = "Tank", "Galio" = "Tank", "Illaoi" = "Tank", "K'Sante" = "Tank", "Kled" = "Tank", "Malphite" = "Tank", "Maokai" = "Tank", "Nasus" = "Tank", "Nunu & Willump" = "Tank", "Olaf" = "Tank", "Ornn" = "Tank", "Poppy" = "Tank", "Rammus" = "Tank", "Rell" = "Tank", "Renekton" = "Tank", "Sejuani" = "Tank", "Shen" = "Tank", "Singed" = "Tank", "Sion" = "Tank", "Skarner" = "Tank", "Tahm Kench" = "Tank", "Trundle" = "Tank", "Urgot" = "Tank", "Yorick" = "Tank", "Zac" = "Tank")
+
+lol_data$champion_class <- champion_to_category[lol_data$champion]
+lol_data$champion_class <- as.factor(lol_data$champion_class)
+
+lol_data <- lol_data  %>%
+  select(league, year, date, game, side, teamname, position, playername,
+         champion, result, firstbloodkill, champion_class, datacompleteness) %>%
+  filter(league == "LCK" | league == "LPL") %>%
+  filter(position != "team")
+```
+
+# Motivation/Introduction
+
+Esports (short for electronic gaming) as a professional sporting tournaments have grown exponentially due to their rise in multiplayer games such as Valorant, Counter-Strike: Global Offensive, Tom Clancy's Rainbow Six Siege and the focus of this paper, League of Legends. Developed by Riot Games in 2009, League of Legends is a competitive Multiplayer online battle arena (MOBA) that has grown to over 150, 000 million active players as of 2022 and has grown to be the largest esport in the world-- with some events having higher viewership than championships from the NBA and Stanley Cup-- and consequently advanced the esport industry. International tournaments are held every year, with leagues and teams established around the world. This paper will be focusing on statistics from the leagues League of Legends Champions Korea (LCK) and League of Legends Pro League (LPL) for reasons that the teams were organized *relatively early*, have very higher viewership relative to other leagues, *have better performance overall*, and have some of the most popular players such as Faker (LCK), Uzi (LPL), and Keria (LCK). 
+
+In the game, there are two opposing teams of five players situated on contrary corners of a square map with the objective of destroying the rival team's "Nexus". Each player controls a chosen character from a variety known as a "champion" (and will be referred to as such within this paper) that have distinct abilities and styles of play. During a match, champions advance towards the enemy's base along two lanes that run along the perimeter of the map, and another diagonally through the map, earn gold and experience, to purchase items to become more powerful and defeat the opposing team, as well as complete other objectives, to ultimately reach the opposing teams base and defeat their Nexus.
+
+There are many factors to be aware of when in a real-time multiplayer team-based game, with some factors that are invariable, and others that are completely up to chance. Some components such as the map, timing of spawning objectives, and abilities do not change during the game, but others are completely up to chance such as the order in which plays pick and ban the champions they want to play and not play against, the advantages of objectives, most important, the corner of the map the team plays on. The game's are also greatly influenced by strategy, with decisions made prior and during the setup stage of the match that can impact the game. Since each champion is so unique, players will find a lane and several champions suited for their play style. Players choose champions strategically based on their roles, abilities, and synergy with other champions, as well as to combat the enemies. The team must also collectively choose five champions to restrict the opposing team from playing that match. Each lane and champion has a great influence on the game, making each game unique and engaging. 
+
+Leagues LCK and LPL have been top-preforming for many years, and their matches are highly analysed by many such as coaches, esport betters, professional and casual players to examine choices, mistakes, and statistics. The game is notoriously known for the team having their base at the bottom left corner of the map (known as the 'blue side') to have an advantage over the team with the base at top right of the map (known as the 'red side'). Through the game and its adjustments, the blue side has had a higher win rate, which could be due to the maps layout and location of objectives, while some blame casual players for not having the same skills as professional players. we will explore that...
+
+specifically, we will analyze the data of LCK and LPL from tournaments played from 2018 to 2023. 
+With such a complex game, it is difficult to factor that can predict the winning team.
+
+what do the findings show....
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+side_wins <- lol_data %>%
+  filter(result == 1) %>% # Assuming result == 1 indicates a win
+  group_by(side) %>%
+  summarise(wins = n()) %>%
+  ungroup()
+
+combined_counts <- lol_data %>%
+  group_by(champion_class) %>%
+  summarise(first_bloods = sum(firstbloodkill, na.rm = TRUE))
+
+# View the combined results
+print(combined_counts)
+
+champion_count <- lol_data %>%
+  group_by(champion) %>%
+  summarise(count = n()) %>%
+  ungroup() %>%
+  arrange(desc(count)) %>% # Optional: arrange in descending order of count
+  as_tibble()
+
+# View the tibble
+print(champion_count)
+```
+
+# Data
+
+The data is sourced from OracleElixir, containing information on players and tournaments played by leagues LCK and LPL in years 2108 to 2023 with gaming statistics for each match.
+
+The analysis of the data is done using R and packages ... , and plots, graphs and tables were created using ...
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+first_blood_win_ratio_by_class_position_side <- lol_data %>%
+  group_by(champion_class, position, side) %>%
+  summarise(
+    first_bloods = sum(firstbloodkill, na.rm = TRUE), # Total first bloods by class, position, and side
+    wins_with_first_blood = sum(firstbloodkill == 1 & result == 1, na.rm = TRUE), # Wins with first blood
+    win_ratio_with_first_blood = if_else(first_bloods > 0, wins_with_first_blood / first_bloods, 0) # Ratio of wins when getting first blood
+  ) %>%
+  ungroup() %>%
+  as_tibble() # Convert to tibble
+
+first_blood_win_ratio_by_class_position_side <- first_blood_win_ratio_by_class_position_side %>%
+  filter(first_bloods >= 15)
+# View the tibble
+print(first_blood_win_ratio_by_class_position_side)
 
 ```
 
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+
+# Plot with separation by side
+ggplot(first_blood_win_ratio_by_class_position_side, aes(x = position, y = win_ratio_with_first_blood, fill = champion_class)) +
+  geom_bar(stat = "identity", position = position_dodge()) +
+  labs(x = "Position", y = "Win Ratio with First Blood", title = "Win Ratio by Position, Class, and Side with First Blood") +
+  theme_minimal() +
+  facet_grid(side ~ champion_class, scales = "free_x") + # Separate plots by side and class
+  scale_fill_brewer(palette = "Set3") + # Optional: Improve color scheme
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Improve readability of x-axis labels
+
+```
+```{r}
+
+```
+
+$$
+\begin{aligned} 
+y_i|\pi_i  &\sim \mbox{Bern}(\pi_i) \\
+\mbox{logit}(\pi_i) &= \beta_0 + \beta_1 \times \mbox{gender}_i + \beta_2\times \mbox{immigration status}_i + \beta_3\times \mbox{previous 2016 vote}_i\\
+\beta_0 &\sim \mbox{Normal}(0, 2.5) \\
+\beta_1 &\sim \mbox{Normal}(0, 2.5) \\
+\beta_2 &\sim \mbox{Normal}(0, 2.5) \\
+\beta_3 &\sim \mbox{Normal}(0, 2.5)
+\end{aligned}
+$$
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+# Assuming lol_data is your dataset
+lol_data$position <- as.factor(lol_data$position)
+lol_data$champion_class <- as.factor(lol_data$champion_class)
+lol_data$side <- as.factor(lol_data$side)
+
+# Building the model
+model <- glm(result ~ position + champion_class + firstbloodkill, family = binomial(link = "logit"), data = lol_data)
+
+# Summary of the model
+summary(model)
+
+```
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+set.seed(853)
+
+lol_data <- 
+  lol_data |> 
+  slice_sample(n = 1000)
+
+results <-
+  stan_glm(
+    result ~ position + champion_class + firstbloodkill,
+    data = lol_data,
+    family = binomial(link = "logit"),
+    prior = normal(location = 0, scale = 2.5, autoscale = TRUE),
+    prior_intercept = 
+      normal(location = 0, scale = 2.5, autoscale = TRUE),
+    seed = 853
+  )
+
+saveRDS(
+  results,
+  file = "results.rds"
+)
+
+results <-
+  readRDS(file = "results.rds")
+
+modelsummary(
+  list(
+    "Probability of winning " = results
+  ),
+  statistic = "mad"
+  )
+
+modelplot(results, conf_level = 0.9) +
+  labs(x = "90 per cent credibility interval")
+```
+why did they win???
+
+rakan, rell
+
+should they make game more appeasling to a certain audiance, 
+
+predict whos gonna win based off which position gets first blood 
+number fo tanks which counterrs cc and helps snowball 
+
+does first blood or side matter more??
+
+
+
+# Refrences
+*intro*
+leage stat for players in 2022 - https://prioridata.com/data/league-of-legends/#:~:text=It%20offers%20insights%20into%20the%20game's%20current%20popularity%20and%20player%20engagement.&text=League%20of%20Legends%20has%20a,152%20million%20as%20of%202023.
+
+ stanley cup refrence - Hardenstein, Taylor Stanton (Spring 2017). ""Skins" in the Game: Counter-Strike, Esports, and the Shady World of Online Gambling".
