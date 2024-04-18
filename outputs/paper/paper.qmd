@@ -1,17 +1,17 @@
 ---
 title: "Decoding Victory in League of Legends: A Comparative Study of Early Game Statistics"
 author: "Cristina Burca"
-thanks: "Code and data are available at: LINK."
+thanks: "Code and data are available at: https://github.com/crisburca/LoLstats.git."
 date: today
 date-format: long
 abstract: "Esports, particularly League of Legends, have seen exponential growth, transforming into a professional sporting phenomenon with international tournaments and a vast player base. This paper delves into the statistical analysis of League of Legends Worlds Championship data from 2018-2023, focusing on early game variables gold, expereicne and creep score and their impact on the win probability. Our results indicate that while generally higher statistics compared to the opposing team enhance the likelihood of victory, some early in-game variables present suggesst otherwise."
 format: 
   pdf:
+    bibliography: references.bib
     documentclass: article
     geometry: margin = 1in
 number-sections: true
 toc: true
-bibliography: references.bib
 ---
 
 ```{r}
@@ -23,23 +23,25 @@ library(tinytex)
 library(readr)
 library(tidyverse)
 library(dplyr)
-library(tibble)
 library(rstanarm)
 library(modelsummary)
-library(purrr)
 library(kableExtra)
 library(gridExtra)
-library(grid)
-library(tidyr)
 library(reshape2)
 library(here)
 
-data_2018 <- read.csv(here("inputs", "data", "2018_LoL_esports_match_data_from_OraclesElixir.csv"))
-data_2019 <- read.csv(here("inputs", "data", "2019_LoL_esports_match_data_from_OraclesElixir.csv"))
-data_2020 <- read.csv(here("inputs", "data", "2020_LoL_esports_match_data_from_OraclesElixir.csv"))
-data_2021 <- read.csv(here("inputs", "data", "2021_LoL_esports_match_data_from_OraclesElixir.csv"))
-data_2022 <- read.csv(here("inputs", "data", "2022_LoL_esports_match_data_from_OraclesElixir.csv"))
-data_2023 <- read.csv(here("inputs", "data", "2023_LoL_esports_match_data_from_OraclesElixir.csv"))
+data_2018 <- read.csv(here("inputs", "data", "raw data import",
+                           "2018_LoL_esports_match_data_from_OraclesElixir.csv"))
+data_2019 <- read.csv(here("inputs", "data", "raw data import",
+                           "2019_LoL_esports_match_data_from_OraclesElixir.csv"))
+data_2020 <- read.csv(here("inputs", "data", "raw data import",
+                           "2020_LoL_esports_match_data_from_OraclesElixir.csv"))
+data_2021 <- read.csv(here("inputs", "data", "raw data import",
+                           "2021_LoL_esports_match_data_from_OraclesElixir.csv"))
+data_2022 <- read.csv(here("inputs", "data", "raw data import",
+                           "2022_LoL_esports_match_data_from_OraclesElixir.csv"))
+data_2023 <- read.csv(here("inputs", "data", "raw data import",
+                           "2023_LoL_esports_match_data_from_OraclesElixir.csv"))
 
 lol_data <- rbind(data_2018, data_2019, data_2020, data_2021, data_2022, data_2023)
 ```
@@ -50,7 +52,7 @@ lol_data <- rbind(data_2018, data_2019, data_2020, data_2021, data_2022, data_20
 #| warning: false
 #| message: false
 
-model_data <- lol_data %>% filter(league == "WLDs", position == "team", side == "Blue") %>%
+model_data <- lol_data %>% filter(league == "WLDs", position == "team") %>%
   select(league, year, side, teamname, result, goldat10, xpat10, csat10, goldat15, xpat15, csat15, golddiffat10, xpdiffat10, csdiffat10, golddiffat15, xpdiffat15, csdiffat15) %>%
   na.omit()
 
@@ -79,9 +81,9 @@ Although all of these variables correlate, they are not necessarily dependent on
 
 # Data
 
-The data is sourced from OracleElixir (cite), containing information on players and tournaments played in the World Series from years 2108 to 2023 with gaming statistics for each match.
+The data is sourced from tr56 (cite), containing information on players and tournaments played in the World Series from years 2108 to 2023 with gaming statistics for each match.
 
-The analysis of the data is done using R and packages ... , and plots, graphs and tables were created using ...
+The analysis of the data is done using R and packages @citeR, cleaned using @citeTidyverse and plots, graphs and tables were created using ...
 
 
 ## Overview of data
@@ -286,86 +288,6 @@ ggplot(win_percentages_year, aes(x = factor(year), y = percentage, fill = side))
   scale_fill_brewer(palette = "Set1")
 ```
 
-```{r}
-#| include: false
-#| warning: false
-#| message: false
-#| label: fig-headdata6
-#| fig-cap: "Average Gold, Experience and Creep Score at 10 and 15 minutes by winning and losing teams by year"
-#| fig-subcap: ["Gold at 10 minutes","Gold at 15 minutes", "XP at 10 minutes", "XP at 15 minutes", "CS at 10 minutes", "CS at 15 minutes"]
-#| layout-ncol: 2
-
-not_diff <- lol_data %>% 
-  filter(league == "WLDs", position == "team") %>%
-  select(league, year, side, teamname, result, goldat10, xpat10, csat10, goldat15, xpat15, csat15)
-
-averages_won <- not_diff %>%
-  filter(result == 1) %>%
-  group_by(year) %>%
-  summarise(
-    avg_goldat10 = mean(goldat10, na.rm = TRUE),
-    avg_xpat10 = mean(xpat10, na.rm = TRUE),
-    avg_csat10 = mean(csat10, na.rm = TRUE),
-    avg_goldat15 = mean(goldat15, na.rm = TRUE),
-    avg_xpat15 = mean(xpat15, na.rm = TRUE),
-    avg_csat15 = mean(csat15, na.rm = TRUE)
-  )
-
-averages_lost <- not_diff %>%
-  filter(result == 0) %>%
-  group_by(year) %>%
-  summarise(
-    avg_goldat10 = mean(goldat10, na.rm = TRUE),
-    avg_xpat10 = mean(xpat10, na.rm = TRUE),
-    avg_csat10 = mean(csat10, na.rm = TRUE),
-    avg_goldat15 = mean(goldat15, na.rm = TRUE),
-    avg_xpat15 = mean(xpat15, na.rm = TRUE),
-    avg_csat15 = mean(csat15, na.rm = TRUE)
-  )
-
-ggplot() +
-  geom_line(data = averages_won, aes(x=year, y=avg_goldat10, color="Won")) +
-  geom_line(data = averages_lost, aes(x=year, y=avg_goldat10, color="Lost")) +
-  labs(color="Legend") +
-  ylab("Gold") + 
-  xlab("Year")
-
-ggplot() +
-  geom_line(data = averages_won, aes(x=year, y=avg_goldat15, color="Won")) +
-  geom_line(data = averages_lost, aes(x=year, y=avg_goldat15, color="Lost")) +
-  labs(color="Legend") +
-  ylab("Gold") + 
-  xlab("Year")
-
-ggplot() +
-  geom_line(data = averages_won, aes(x=year, y=avg_xpat10, color="Won")) +
-  geom_line(data = averages_lost, aes(x=year, y=avg_xpat10, color="Lost")) +
-  labs(color="Legend") +
-  ylab("XP") + 
-  xlab("Year")
-
-ggplot() +
-  geom_line(data = averages_won, aes(x=year, y=avg_xpat15, color="Won")) +
-  geom_line(data = averages_lost, aes(x=year, y=avg_xpat15, color="Lost")) +
-  labs(color="Legend") +
-  ylab("XP") + 
-  xlab("Year")
-
-ggplot() +
-  geom_line(data = averages_won, aes(x=year, y=avg_csat10, color="Won")) +
-  geom_line(data = averages_lost, aes(x=year, y=avg_csat10, color="Lost")) +
-  labs(color="Legend") +
-  ylab("CS") + 
-  xlab("Year")
-
-ggplot() +
-  geom_line(data = averages_won, aes(x=year, y=avg_csat15, color="Won")) +
-  geom_line(data = averages_lost, aes(x=year, y=avg_csat15, color="Lost")) +
-  labs(color="Legend") +
-  ylab("CS") + 
-  xlab("Year")
-
-```
 
 # Model
 
@@ -407,20 +329,20 @@ Introduce simulation ...
 ## Model 1: From years 2018-2023
 
 ```{r}
-#| include: false
+#| echo: false
 #| warning: false
 #| message: false
 
 #set scale
-model_data$golddiffat10 <- scale(model_data$golddiffat10)
-model_data$xpdiffat10 <- scale(model_data$xpdiffat10)
-model_data$csdiffat10 <- scale(model_data$csdiffat10)
-model_data$golddiffat15 <- scale(model_data$golddiffat15)
-model_data$xpdiffat15 <- scale(model_data$xpdiffat15)
-model_data$csdiffat15 <- scale(model_data$csdiffat15)
-
-# filter by side
 blue_data <- model_data  %>% filter(side == "Blue")
+
+blue_data$golddiffat10 <- scale(blue_data$golddiffat10)
+blue_data$xpdiffat10 <- scale(blue_data$xpdiffat10)
+blue_data$csdiffat10 <- scale(blue_data$csdiffat10)
+blue_data$golddiffat15 <- scale(blue_data$golddiffat15)
+blue_data$xpdiffat15 <- scale(blue_data$xpdiffat15)
+blue_data$csdiffat15 <- scale(blue_data$csdiffat15)
+
 ```
 
 
@@ -429,9 +351,10 @@ blue_data <- model_data  %>% filter(side == "Blue")
 #| warning: false
 #| message: false
 
-# Calculate means and standard deviations for scaling back later
-means <- sapply(model_data[, c("golddiffat10", "xpdiffat10", "csdiffat10", "golddiffat15", "xpdiffat15", "csdiffat15")], mean, na.rm = TRUE)
-sds <- sapply(model_data[, c("golddiffat10", "xpdiffat10", "csdiffat10", "golddiffat15", "xpdiffat15", "csdiffat15")], sd, na.rm = TRUE)
+sds <- sapply(model_data[, c("golddiffat10", "xpdiffat10"
+                             , "csdiffat10", "golddiffat15",
+                             "xpdiffat15", "csdiffat15")],
+              sd, na.rm = TRUE)
 
 
 #model for blue side
@@ -458,10 +381,13 @@ saveRDS(
 blue_results <-
   readRDS(file = "blue_results.rds")
 
-coef_unscaled <- coef(blue_results)[c("golddiffat10", "xpdiffat10",
-                                      "csdiffat10", "golddiffat15",
-                                      "xpdiffat15", "csdiffat15")] * sds
+coefficients_scaled <- coef(blue_results)
 
+# Scale back the coefficients using the stored standard deviations
+coefficients_rescaled <- coefficients_scaled / sds
+
+# Display the rescaled coefficients
+coefficients_rescaled <- exp(coefficients_rescaled)
 ```
  
  
@@ -504,8 +430,7 @@ modelsummary(
 #| warning: false
 #| message: false
 
-odds_ratios <- exp(coef_unscaled)
-odds_ratios
+
 
 #The standard errors of the estimated coefficients is below each respective intercept.
 ```
@@ -598,10 +523,7 @@ Due to periodic updates that determine many factors in the game, it is hard to m
 
 \newpage
 
-# Refrences
-*intro*
-leage stat for players in 2022 - https://prioridata.com/data/league-of-legends/#:~:text=It%20offers%20insights%20into%20the%20game's%20current%20popularity%20and%20player%20engagement.&text=League%20of%20Legends%20has%20a,152%20million%20as%20of%202023.
+# References
 
- stanley cup refrence - Hardenstein, Taylor Stanton (Spring 2017). ""Skins" in the Game: Counter-Strike, Esports, and the Shady World of Online Gambling".
  
 

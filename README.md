@@ -5,8 +5,8 @@
 This repository contains data and code used to produce a paper that analyzes League of Legends data from 2018-2023. 
 
 ## LLM Usage: 
-Chatgpt was used as our generative ai to help with definitions, error codes and exceptional cases in our code when, the textbook provided or the internet didn't provide answers.
-Cristina's LLM link:
+Chatgpt was used as our generative ai to help with definitions, error codes and exceptional cases in the code.
+LLM link:https://chat.openai.com/share/eeff5ae7-86bf-4ad6-b3ba-b4a079d796b1
 
 ## File Structure
 
