@@ -4,7 +4,7 @@ author: "Cristina Burca"
 thanks: "Code and data are available at: https://github.com/crisburca/LoLstats.git."
 date: today
 date-format: long
-abstract: "Esports, particularly League of Legends, have seen exponential growth, transforming into a professional sporting phenomenon with international tournaments and a vast player base. This paper delves into the statistical analysis of League of Legends Worlds Championship data from 2018-2023, focusing on early game variables gold, expereicne and creep score and their impact on the win probability. Our results indicate that while generally higher statistics compared to the opposing team enhance the likelihood of victory, some early in-game variables present suggesst otherwise."
+abstract: "Esports, especially League of Legends, have rapidly evolved into a major professional sports phenomenon, featuring international tournaments and attracting a massive global player base. This paper delves into the statistical analysis of League of Legends Worlds Championship data from 2018-2023, focusing on early game variables gold, expereince and creep score and their impact on the win probability. Our results indicate that while generally higher early game statistics compared to the opposing team are associated with increased chances of victory, our findings suggest that paradoxically, lower statistics at the 10-minute mark may actually enhance the likelihood of winning, highlighting the complex dynamics of strategic gameplay in League of Legends."
 format: 
   pdf:
     bibliography: references.bib
@@ -29,6 +29,8 @@ library(kableExtra)
 library(gridExtra)
 library(reshape2)
 library(here)
+library(stringr)
+
 
 data_2018 <- read.csv(here("inputs", "data", "raw data import",
                            "2018_LoL_esports_match_data_from_OraclesElixir.csv"))
@@ -61,94 +63,59 @@ model_data <- lol_data %>% filter(league == "WLDs", position == "team") %>%
 
 # Motivation
 
-Esports (short for electronic gaming) as professional sporting tournaments have grown exponentially in popularity, due to the rise of multiplayer games such as Valorant, Counter-Strike: Global Offensive, Tom Clancy’s Rainbow Six Siege, and the focus of this paper, League of Legends. Developed by Riot Games in 2009, League of Legends is a competitive multiplayer online battle arena (MOBA) with an active player base of over 150,000 million as of 2022. It has grown to be the largest esport in the world – with some events having higher viewership than NBA and Stanley Cup championships – and consequently promoted popularity of the esport industry. International tournaments are held every year, with leagues and teams established around the world. This paper will be focusing on statistics from the League of Legends World Championship hosted by the developers, Riot Games. Commonly known as Worlds, it is a championship tournament hosted annually, involving 24 teams from all around the world. 
+Esports (short for electronic gaming) as professional sporting tournaments have grown exponentially in popularity, due to the rise of multiplayer games such as Valorant, Counter-Strike: Global Offensive, Tom Clancy’s Rainbow Six Siege, and the focus of this paper, League of Legends. Developed by Riot Games in 2009, League of Legends is a competitive multiplayer online battle arena (MOBA) with an active player base of over 150,000 million as of 2022. It has grown to be the largest esport in the world – with some events having higher viewership than NBA and Stanley Cup championships – and consequently promoted the popularity of the esport industry [@citeEsprot]. International tournaments are held every year, with leagues and teams established around the world. This paper will focus on statistics from the League of Legends World Championship hosted by the developers, Riot Games. Commonly known as Worlds, it is a championship tournament hosted annually, involving 24 teams from all around the world. 
 
-There are many factors to be aware of when in a multiplayer team-based game, with some factors that are invariable, and others that are completely up to chance. However, the games are also greatly influenced by strategy – with decisions made prior to and during the first stages of the match that can impact the outcome of the game. Games typically last between 30-60 minutes, but can range much shorter or longer. Arguably, the early stages of the game (referred to as “early game”) can influence the game’s outcome the most. As the game goes on, the increase of players’ gold income, creep score, and experience levels when compared to their opponents influence the end result. These variables and their importance will be further discussed in the next section. We will be examining the variables in the early stages of the game, specifically during the 10 and 15 minute marks, to understand their significance in winning a game. We also compare them with older data as well as data from 2023, to see the difference in variables. 
+There are many factors to be aware of when in a multiplayer team-based game, with some invariable factors, and others that are completely up to chance. However, the games are also greatly influenced by strategy – with decisions made before and during the first stages of the match that can impact the outcome of the game. Games typically last between 30-60 minutes but can range much shorter or longer. Arguably, the early stages of the game (referred to as “early game”) can influence the game’s outcome the most. As the game goes on, the increase of players’ gold income, creep score, and experience levels when compared to their opponents influence the outcome. These variables and their importance will be further discussed in the next section.
 
-These variables of interest are tested through a logistic regression model. The findings show that.. 
+This paper will examine these variables in the early stages of the game, specifically during the 10 and 15-minute marks, to understand their significance in winning a game. We also compare them with older data as well as data from 2023, to see the difference in variables. These variables of interest are tested through a logistic regression model. The findings suggest that lower 10-minute statistics might paradoxically be linked to a greater probability of winning, relative to statistics at the 15-minute mark. The accumulation of team statistics early in the game, such as securing multiple kills, can significantly boost a team’s gold reserves while not necessarily reflecting a similarly high experience or creep score.
 
-In section 1.1 of the paper, a brief introduction to the game is defined, as well as an introduction to the variables in the game and their correlations. In section 2, the data set is and the variables of interest are discussed and observed. Section 3 will establish the logistic model, its justification, and how it was created. Section 4 discusses the results. 
+In section 1.1 of the paper, a brief introduction to the game is defined, as well as an introduction to the variables in the game and their correlations. In section 2, the data set is and the variables of interest are discussed and observed. Section 3 will establish the logistic model, and how it was created. Section 4 discusses the results. 
 
 ## Introduction to the Game
 
-In the game, there are two teams of five players each, competing within a square-shaped map. They begin on opposing corners, of which each half is referred to as either the red or the blue side. Both sides have a single “nexus,” and the game is ended when one of the nexuses is destroyed. The objective for each team is to reach the other end of the map, and destroy the other team’s nexus in order to win. Each player controls a character, or “champion,” of their choice, from an available pool of 160+ unique options with distinct abilities and playstyles. During a match, players can advance towards the enemy’s base through three lanes, two of which go around the perimeter of the map, and one that cuts diagonally across. These lanes are called “top,” “mid(/middle),” and “bot(/bottom),” of which both teams have designated players to occupy the lanes. Each player is assigned a unique “role” in the game, four of which are allocated to advancing within a lane: top and mid lane are “solo” lanes, with a single player contending against the opposing laner, whereas bot lane is occupied by two players (an “adc” and a “support”). In each lane on both sides of the map, there are two “turrets” that must be destroyed in order to advance towards the enemy “base,” where the nexus is located. Both red and blue sides spawn waves of minions, or “creeps,” every 30 seconds - consisting of six or seven creeps that advance down each lane. The allied creeps contribute to destroying the opposing turrets, and will grant enemy players gold if killed. In each lane, players will defend their turrets by defeating creeps and engaging with enemy laners, in order to push towards and destroy the opposing turrets. Players earn gold and experience through killing creeps, defeating or assisting in the defeat of enemy champions, and destroying turrets. Each player will passively earn gold, but capturing objectives for greater income and experience can be used to purchase items and level up abilities faster - consequently making one’s champion more powerful, and more efficient in combat. Killing creeps is the main source of gold for players within the lanes. The fifth player that is not assigned to a lane is the designated “jungler,” of which passes through the “jungle” in between the lanes and kills neutral jungle monsters in order to get gold and experience. The jungler’s role is to assist in defeating enemy laners, and secure neutral objectives that can offer team-wide buffs and gold. By acquiring more gold and experience than the enemy team through creeps, objectives, and kill/assist count, a team is more effective in resisting against the other and pushing towards the enemy’s nexus in order to win the game.
+In the game, there are two teams of five players each, competing within a square-shaped map. They begin on opposing corners, of which each half is referred to as either the red or the blue side. Both sides have a single “nexus,” and the game is ended when one of the nexuses is destroyed. The objective for each team is to reach the other end of the map, and destroy the other team’s nexus in order to win. Each player controls a character, or “champion,” of their choice, from an available pool of 160+ unique options with distinct abilities and play styles. During a match, players can advance towards the enemy’s base through three lanes, two of which go around the perimeter of the map, and one that cuts diagonally across. These lanes are called “top,” “mid(/middle),” and “bot(/bottom),” of which both teams have designated players to occupy the lanes. In each lane on both sides of the map, there are two “turrets” that must be destroyed to advance towards the enemy “base,” where the nexus is located. Both red and blue sides spawn waves of minions, or “creeps,” every 30 seconds - consisting of six or seven creeps that advance down each lane. The allied creeps contribute to destroying the opposing turrets, and will grant enemy players gold if killed. In each lane, players will defend their turrets by defeating creeps and engaging with enemy laners, to push towards and destroy the opposing turrets. Players earn gold and experience through killing creeps, defeating or assisting in the defeat of enemy champions, and destroying turrets. Each player will passively earn gold, but capturing objectives for greater income and experience can be used to purchase items and level up abilities faster - consequently making one’s champion more powerful, and more efficient in combat. Killing creeps is the main source of gold for players within the lanes. The fifth player that is not assigned to a lane is the designated “jungler,” of who passes through the “jungle” in between the lanes and kills neutral jungle monsters in order to get gold and experience. The jungler’s role is to assist in defeating enemy laners, and secure neutral objectives that can offer team-wide buffs and gold. By acquiring more gold and experience than the enemy team through creeps, objectives, and kill/assist count, a team is more effective in resisting against the other and pushing towards the enemy’s nexus in order to win the game [@citeLolgame].
 
+The key things to note, and the variables that will be examined in this paper:
 
-• Gold is earned through killing creeps (amount killed is creep score), killing or assisting in killing opponents, and completing objectives. When a champion accumulates consistent kills without dying, the champion will receive a bounty that the opposing team gets when killing the champion. Gold is then used to purchase utility items specific to champions to become stronger. 
-• Experience is earned in the same way, but is counted as levels from 1-18, where each level, the champion is able to upgrade one of their four abilities. Experience is also gained through standing near minions that are being killed. 
-• since creep score is the main source of gold, especially in the first 15 minutes of the game, players’ individual creep score can signify roughly how much income the player has, and how well they are doing against their opposing laner. 
+- Gold is primarily earned through killing creeps, and also earned through killing or assisting in killing opponents, and completing objectives. When a champion accumulates consistent kills without dying, the champion will receive a bounty that the opposing team gets when killing the champion. Gold is then used to purchase utility items specific to champions to become stronger. 
+- Experience is earned the same as gold, but is counted as levels from 1-18, where each level, the champion is able to upgrade one of their four abilities. Experience is also gained through standing near minions that are being killed. 
+- Creep score is counted by the amount of creeps a player has killed. Comparing each player's individual creep score to that of their opposing laner can provide an estimation of how well they are performing.
 Although all of these variables correlate, they are not necessarily dependent on each other, and they do not grow together. 
+
+An important detail to note, which will become a relevant theme throughout the analysis, is the developers release a considerable update to the game at the beginning of each year. This update includes changes to the map, champion abilities, utility items, in-game mechanics, and other aspects of the game. Players and teams may change their play style and strategy to account for these updates. Thus, it is difficult to establish trends for variables over the years, as it is important to account for the varying fundamentals of these statistics.
 
 # Data
 
-The data is sourced from tr56 (cite), containing information on players and tournaments played in the World Series from years 2108 to 2023 with gaming statistics for each match.
+The data is sourced from OracleElixir [@citeLoldata], a popular League of Legends esports stats website used by coaches, analysts, broadcasters, and many others. The website is composed of upcoming, live, and recent statistics of matches, where statistics can be viewed by player, team,  and league. The data files, categorized by year, are available through the website and are updated daily. The data contains many in-depth analytics on players and tournaments played in all championships and leagues including the World Series. We analyze data from years 2108 to 2023 with gaming statistics for each match.
 
-The analysis of the data is done using R and packages @citeR, cleaned using @citeTidyverse and plots, graphs and tables were created using ...
+The analysis of the data is done using the R programming language @citeR, and cleaned using @citeTidyverse. Plots,  tables, and models were created using the packages 'modelsummary' @citeModelsummary, 'stanarm' @citeStanarm, 'kableExtra' @citeKableextra, 'grideExtra '@citeGridextra, @citeReshape2. Packages 'tinytex' @citeTinytex, 'readr' @citeReadr, and 'here' @citeHere were used for importing the data and formatting the document. 
 
+## Variables of Interest
 
-## Overview of data
+Each team and individual player have over 100 variables recorded for each match. We chose to focus of Worlds Championship data from 2018 to 2023. The variables considered for this paper are:
 
-Each team and individual player have over 100 variables recorded for each match. To get an idea of the data set, we give an example of a matched played by the finalist teams Weibo Gaming and T1 in the Worlds Championship in 2023 in In @tbl-headdata1, listing the variables we are interested in. 
+- `golddiffat10`: the total difference of gold at 10 minutes between teams 
+- `xpdiffat10`: the total difference of experience at 10 minutes between teams 
+- `csdiffat10`: the total difference of creep score at 10 minutes between teams 
+- `golddiffat15`: the total difference of gold at 15 minutes between teams 
+- `xpdiffat15`: the total difference of experience at 15 minutes between teams 
+- `csdiffat15`: the total difference of creep score at 15 minutes between teams 
+
+Each total difference is calculated by summing the respective statistics from all players on each team at the specified time and then subtracted.
+
+We examine the difference in the variables between teams instead of the tangible values. Due to the many factors in the game and the many sources of income and experience, the values of each variable can differ greatly from match to match. Instead, we focus on the total difference for each variable between teams, to center our analysis on the importance of each variable relative to the likelihood of winning.
+
+In @tbl-headdata1, we introduce the data by displaying averages of differences in gold, experience, and creep score at 10 and 15 minutes between teams by year. Note that all of these variables can highly vary between games. The average differences in gold between teams usually vary between 500 to 2,000 gold, average differences in experience vary between 300 to 1,000, and average differences in creep score vary between 5 and 20 creeps. 
+
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
 #| label: tbl-headdata1
-#| tbl-cap: "Finalist team's total gold, experience and creep score in 2023 at 10 and 15 minutes"
-
-overview <- lol_data %>% 
-  select(year, game, league, teamname, side, position,
-         result, goldat10, xpat10, csat10, goldat15, xpat15, csat15) %>%
-  filter(year == 2023, league == "WLDs",
-         (teamname == "T1"| teamname == "Weibo Gaming"),
-         (goldat10 == 16638 | goldat10 == 15536),
-         position == "team") %>%
-  na.omit()
-
-overview_new <- overview[, c("teamname", "result",
-                             "goldat10","xpat10","csat10","goldat15","xpat15", "csat15")]
-
-kable(overview_new, col.names = c("teamname", "result", "Gold at 10", "XP at 10", "CS at 10", "Gold at 15", "XP at 15", "CS at 15"), digits = 2)
-```
-All matches are displayed as in @tbl-headdata1. We are not necessarily testing the importance of the exact values in this paper, thus we draw our focus to the differences in each variable for each team. Instead of calculating a specific score that needs to be met, which varies greatly from game to game, we focus on the difference between each team statistic, to instead calculate a value as to which the winning team is ahead by. 
-
-In @tbl-headdata2, we look at the same match as @tbl-headdata1, but instead the team's total difference in gold, experience, and creep score. 
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: tbl-headdata2
-#| tbl-cap: "Finalist team's total difference in gold, experience and creep score in 2023 at 10 and 15 minutes"
-
-overview2 <- lol_data %>% 
-  select(year, game, league, teamname, side, position,
-         result, golddiffat10, xpdiffat10, csdiffat10,
-         golddiffat15, xpdiffat15, csdiffat15) %>%
-  filter(year == 2023, league == "WLDs",
-         (teamname == "T1"| teamname == "Weibo Gaming"),
-         (golddiffat10 == 1102 | golddiffat10 == -1102),
-         position == "team") %>%
-  na.omit()
-
-overview_new2 <- overview2[, c("teamname", "result",
-                             "golddiffat10","xpdiffat10","csdiffat10","golddiffat15","xpdiffat15", "csdiffat15")]
-
-kable(overview_new2, col.names = c("teamname", "result", "Gold at 10", "XP at 10", "CS at 10", "Gold at 15", "XP at 15", "CS at 15"), digits = 2)
-```
-We expect the values to be equal in value and opposite in sign. To avoid duplicates (and eventually have the values cancel each other out), we take into consideration that each game contains a team on each side of the map, either the red or blue. For the sake of this paper, we choose to observe all the games from the blue side of the map. It is safe to assume that both the red and the blue side have a 50% of winning the game. 
-
-Analyzing all matches from the League of Legends World Championship from 2018-2023, we introduce the variables: 'golddiffat10', 'xpdiffat10', 'golddiffat15', 'xpdiffat15', and 'csdiffat15'. Each variable calculates the cumulative difference in either gold, experience or creep score between the two teams at 10 or 15 minutes into the game.
-
-In @tbl-headdata3, we introduce the averages of differences in gold, experience and creep score at 10 and 15 minutes between teams over the years. 
-```{r}
-#| echo: false
-#| warning: false
-#| message: false
-#| label: tbl-headdata3
 #| tbl-cap: "Average difference in Gold, Experience and Creep Score at 10 and 15 minutes by Year"
 
 
-diff_averages <- model_data %>%
+diff_averages_year <- model_data %>%
   filter(result == 1) %>%
   group_by(year) %>%
   summarise(
@@ -159,62 +126,75 @@ diff_averages <- model_data %>%
     avg_xpdiffat15 = mean(xpdiffat15, na.rm = TRUE),
     avg_csdiffat15 = mean(csdiffat15, na.rm = TRUE))
 
-kable(diff_averages, col.names = c("Year", "Gold at 10", "XP at 10", "CS at 10", "Gold at 15", "XP at 15", "CS at 15"), digits = 2)
+kable(diff_averages_year, col.names = c("Year", "Gold at 10", "XP at 10", "CS at 10", "Gold at 15", "XP at 15", "CS at 15"), digits = 2)
 
 ```
 
- 
-```{r, fig.width=7}
+
+In @fig-headdata1, we plot the values displayed @tbl-headdata1 along with the overall averages for easier observation.
+```{r, fig.width=7, fig.height= 4.5}
 #| echo: false
 #| warning: false
 #| message: false
 #| label: fig-headdata1
 #| fig-cap: "Plot of average difference in Gold, Experience and Creep Score at 10 and 15 minutes by Year"
 
+long_data <- diff_averages_year %>%
+  pivot_longer(
+    cols = starts_with("avg"),
+    names_to = "variable",
+    values_to = "value"
+  ) %>%
+  mutate(
+    metric = case_when(
+      str_detect(variable, "golddiff") ~ "Gold Difference",
+      str_detect(variable, "xpdiff") ~ "Experience Difference",
+      str_detect(variable, "csdiff") ~ "Creep Score Difference"
+    ),
+    time = if_else(str_detect(variable, "at10"), "10 Minutes", "15 Minutes")
+  )
 
-long_data <- diff_averages %>%
-  pivot_longer(cols = starts_with("avg"),
-               names_to = "variable",
-               values_to = "value")
+# Calculate the mean for each combination of metric and time
+average_values <- long_data %>%
+  group_by(metric, time) %>%
+  summarise(average = mean(value, na.rm = TRUE), .groups = 'drop')
 
 
-long_data <- long_data %>%
-  mutate(metric = case_when(
-    str_detect(variable, "golddiff") ~ "Gold Difference",
-    str_detect(variable, "xpdiff") ~ "Experience Difference",
-    str_detect(variable, "csdiff") ~ "Creep Score Difference"
-  ))
 
-
-selected_vars <- long_data %>%
-  filter(str_detect(variable, "golddiff") | str_detect(variable, "xpdiff") | str_detect(variable, "csdiff"))
-
-ggplot(selected_vars, aes(x = year, y = value, color = variable)) +
+ggplot(long_data, aes(x = year, y = value, color = time)) +
   geom_line() +
+  geom_point() +
+  geom_hline(data = average_values, aes(yintercept = average), inherit.aes = FALSE, color = "red", linetype = "dashed") +
   facet_wrap(~ metric, scales = "free_y") +
-  labs(color = "Time", y = "Average Difference") +
+  scale_color_manual(values = c("10 Minutes" = "#1f77b4", "15 Minutes" = "#ff7f0e")) +
+  labs(
+    title = "Comparison of Variables at 10 and 15 Minutes",
+    x = "Year",
+    y = "Average Difference",
+    color = "Time Interval"
+  ) +
   theme_minimal() +
   theme(legend.position = "bottom") +
-  ylab("Average value per year")
+  ylab("Average Value per Year")
+
 
 ```
 
-We plot these values in @fig-headdata1 for easier observation. We introduce averages of team difference in gold, experience and creep score at 10 and 15 minutes over the years. We notice that although the values themselves fluctuate, the difference between the averages stay approximately uniform. From this, we deduce that between the 10 and 15 mark in the game, on average, the increase in all variables is uniform, but over the years, the actual values of the difference change. Since the game is heavily influenced by the updates that are released by the developers yearly, this can affect play style and strategy in the game, which subsequently affects the how close the games were.
+We notice that these differences greatly fluctuate from year to year. Apart from variation in games, this fluctuation can also likely be due to the updates released by the developers every year, which affect the game entirely. Although the values themselves fluctuate, the difference between the averages stays approximately uniform. From this, we deduce that between the 10 and 15 mark in the game, on average, the increase in all variables is uniform, but over the years, the actual values of the difference change.
 
 With these ideas in mind, it is hard to base our current predictions on games played in tournaments on older releases of the game. However, for overall analysis, we examine the variables over the years for overall predictions, as well as in the current year for current predictions. 
 
-We look at averages of all variables for winning and losing teams, as well as their difference in @tbl-headdata5, specific to the year 2023.
+We introduce the averages of all variables for winning and losing teams, as well as their difference in @tbl-headdata2.
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-#| label: tbl-headdata5
-#| tbl-cap: "Difference in Gold, Experience and Creep Score at 10 and 15 minutes in 2023"
+#| label: tbl-headdata2
+#| tbl-cap: "Difference in Gold, Experience and Creep Score at 10 and 15 minutes for years 2018-2023"
 
 
 averages <- model_data %>%
-  filter(year == 2023) %>% 
   group_by(result) %>%
   summarise(
     avg_goldat10 = mean(goldat10, na.rm = TRUE),
@@ -238,17 +218,17 @@ kable(averages, col.names = c("Result", "Gold at 10", "XP at 10", "CS at 10", "G
 
 ```
 
-Notice that the average difference between the winning and losing teams of each variable is much greater at 15 minutes compared to 10 minutes. This suggests that an advance in the first 10 minutes of the game can exponentially raise the winning teams statistics in the subsequent 5 minutes.
+Notice that the average difference between the winning and losing teams of each variable is much greater at 15 minutes compared to 10 minutes. This suggests that an advance in the first 10 minutes of the game can exponentially raise the winning team's statistics in the subsequent 5 minutes.
 
-It is evident that the winning team has higher statics overall, but we are interested in the importance of these early game variables and their influence in winning the game. To evaluate this, we build a logistic regression model.
+It is evident that the winning team has higher statics overall, but we are interested in the importance of these early-game variables and their influence on winning the game. To evaluate this, we build a logistic regression model.
 
-One small thing to note is the small bias comparing the red and blue side. In the past, it has been knowing in the community that the blue side is 'advantageous', most likely due to the positioning and the map layout. We show this is true in Worlds Championship matches as well, in @tbl-headdata6, where the average win rate for the blue side is greater than the red side, which win rates 53% and 47% respectively. In @fig-headdata2, we can see that this is a subsequent trend over the years. 
+One small thing to note is the small bias of teams winning that begins on the blue side of the map relative to the red side throughout the game's history. In the past, it has been known in the community that the blue side is 'advantageous', most likely due to the positioning and the map layout. We show this is true in Worlds Championship matches as well, in @tbl-headdata3, where the average win rate for the blue side is greater than the red side, with win rates of 53% and 47% respectively. In @fig-headdata2, we notice this bias stays true throughout the years.
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-#| label: tbl-headdata6
+#| label: tbl-headdata3
 #| tbl-cap: "Win percentages by side for all Worlds data from 2018-2023"
 
 
@@ -266,7 +246,7 @@ win_percentages <- win_percentages[, c("side", "percentage")]
 kable(win_percentages, col.names = c("Side", "Avg. Win rate"), digits = 2)
 ```
 
-```{r, fig.width= 5, fig.height= 2.5}
+```{r, fig.width= 4.5, fig.height= 2}
 #| echo: false
 #| warning: false
 #| message: false
@@ -288,41 +268,34 @@ ggplot(win_percentages_year, aes(x = factor(year), y = percentage, fill = side))
   scale_fill_brewer(palette = "Set1")
 ```
 
+\newpage
 
 # Model
 
-The goal of this model is simple. We analyze the relation of gold, experience and creep score difference and their correlation to winning a game. We analyze data from 2018 to 2023, as well as specifically 2023, to understand the overall and current correlation. 
+The goal of this model is simple. We analyze the relation of gold, experience, and creep score difference at 10 and 15 minutes to understand their correlation to the likelihood of winning a game through a logistic regression model. We create different models for data from 2018 to 2023, as well as specifically 2023, to understand the overall and current correlation. 
 
 ## Model Set-up
 
-We take into consideration the blue side of all games, as intuitively there is a 50% chance of winning on each side of the map.
-We define the variables in the model @eq-regression. $y_i$ is the probability that the game is won, $\mbox{goldat10}_i$, $\mbox{xpat10}_i$, and $\mbox{csat10}_i$ as the average of gold, experience and creep score at 10 minutes respectively, and $\mbox{goldat15}_i$, $\mbox{xpat15}_i$, and $\mbox{csat15}_i$ as the averages at 15 minutes. We look at difference in variables as opposed to individual team statistics as we are not interested in the actual value of each variable, but rather the importance of each individual variable. 
+Since each of these differences is calculated for both teams in each game, there are duplicate entries for each variable, one for the team with the positive difference and the other with a negative difference. We consider the statistics of teams that played on the blue side of the map to account for this duplication.
+
+We define the variables in the model @eq-regression. $y_i$ is the probability that the game is won, $\beta_0$ is the coefficient of the intercept, $\alpha_i$ is the average gold difference at 10 minutes, $\delta_i$ is the average experience difference at 10 minutes, $\gamma_i$ is the average creep score difference at 10 minutes, $\theta_i$ is the average gold difference at 15 minutes, $\phi_i$  is the average experience difference at 15 minutes, and $\kappa_i$ is the average creep score difference at 15 minutes. We look at differences in variables as opposed to individual team statistics as we are not interested in the actual value of each variable, but rather the importance of each individual variable. 
 
 $$
 \begin{aligned} 
 y_i|\pi_i  &\sim \mbox{Bern}(\pi_i) \\
-\mbox{logit}(\pi_i) &= \beta_0 + \beta_1 \times \mbox{goldat10}_i + \beta_2\times \mbox{xpat10}_i + \beta_3\times \mbox{csat10}_i +\\ \beta_4 \times \mbox{goldat15}_i+ \beta_5 \times \mbox{xpat15}_i+ \beta_6 \times \mbox{csat15}_i\\
-\beta_0 &\sim \mbox{Normal}(0, 2.5) \\
-\beta_1 &\sim \mbox{Normal}(0, 2.5) \\
-\beta_2 &\sim \mbox{Normal}(0, 2.5) \\
-\beta_3 &\sim \mbox{Normal}(0, 2.5) \\
-\beta_4 &\sim \mbox{Normal}(0, 2.5) \\
-\beta_5 &\sim \mbox{Normal}(0, 2.5) \\
-\beta_6 &\sim \mbox{Normal}(0, 2.5) 
+\mbox{logit}(\pi_i) &= \beta_0 + \alpha_i + \delta_i + \gamma_i + \theta_i + \phi_i + \kappa_i\\
+\alpha_i &\sim \mbox{Normal}(0, 2.5) \\
+\delta_i &\sim \mbox{Normal}(0, 2.5) \\
+\gamma_i &\sim \mbox{Normal}(0, 2.5) \\
+\theta_i &\sim \mbox{Normal}(0, 2.5) \\
+\phi_i &\sim \mbox{Normal}(0, 2.5) \\
+\kappa_i &\sim \mbox{Normal}(0, 2.5)
 \end{aligned}
 $$ {#eq-regression}
 
-
-We run this model in @citeR using the 'rstanarm' package @rStanarm. We scale this model since gold, experience and creep score are different 'units; and are not the same scale. We model and plot our findings based on this scale, then we scale back to the original units for insight on the specific values. 
-
-## Model Justification
+We run this model in @citeR using the 'rstanarm' package @citeStanarm. We scale this model since gold, experience and creep score are different 'units' and are not recorded on the same scale. We model and plot our findings based on this scale, then we scale back to the original units for insight on the specific values. 
 
 We expect for all higher values to imply a winning team, but we are interested in which variables are more significant. One might assume that all variables are equally as important, and we will use our model to either prove or disprove this. 
-
-## Model Prediction
-
-Introduce simulation ...  
- 
 
 # Results
 
@@ -351,13 +324,6 @@ blue_data$csdiffat15 <- scale(blue_data$csdiffat15)
 #| warning: false
 #| message: false
 
-sds <- sapply(model_data[, c("golddiffat10", "xpdiffat10"
-                             , "csdiffat10", "golddiffat15",
-                             "xpdiffat15", "csdiffat15")],
-              sd, na.rm = TRUE)
-
-
-#model for blue side
 set.seed(853)
 
 blue_summary_data <- 
@@ -380,37 +346,30 @@ saveRDS(
 
 blue_results <-
   readRDS(file = "blue_results.rds")
-
-coefficients_scaled <- coef(blue_results)
-
-# Scale back the coefficients using the stored standard deviations
-coefficients_rescaled <- coefficients_scaled / sds
-
-# Display the rescaled coefficients
-coefficients_rescaled <- exp(coefficients_rescaled)
 ```
  
  
-```{r, fig.width= 6, fig.height= 3}
+```{r, fig.width= 4.5, fig.height= 2.5}
 #| echo: false
 #| warning: false
 #| message: false
 #| label: fig-headdata3
-#| fig-cap: "Logistic regression model of Worlds matches from 2018- 2023 for difference in gold, xp and cs at 10 and 15 minutes relative to win rate"
+#| fig-cap: "Model 1: Logistic regression model of Worlds matches from 2018 to 2023 for difference gold, xp and cs at 10 and 15 minutes relative to win rate"
 
 
 modelplot(blue_results, conf_level = 0.9) +
   labs(x = "90 per cent credibility interval")
+
 ```
 
-Model 1 illustrated in @fig-headdata3 displays the logistic regression model of Worlds matches from 2018- 2023 for average team difference in gold, experience and creep score at 10 and 15 minutes relative to win rate. Since we have scaled the model, we can assume all variables are counted in the same units. Notice that the intercept is not exactly at 0, meaning that there is not a 50% chance base win rate dependent on both sides. This is due to the analysis in Section 2.1, @tbl-headdata6 and @fig-headdata2, where the bias was discussed. Although something to note, it does not skew the results. The model indicates that a negative difference in experience and creep score at 10 minutes is associated with an increased likelihood of winning. The difference in gold at 10 minutes and creep score at 15 minutes suggest a small increase in the likelihood of winning. The difference in experience and especially gold at 15 minutes increase the likelihood of winning . Based on the first 15 minutes of a game, we can utilize this model to predict the outcome of the winning team. 
+Model 1 illustrated in @fig-headdata3 displays the logistic regression model of Worlds matches from 2018- 2023 for average team difference in gold, experience, and creep score at 10 and 15 minutes relative to win rate. Since we have scaled the model, we can assume all variables are counted in the same units. Notice that the intercept is not exactly at 0, meaning that there is not a 50% chance base win rate dependent on both sides. This is due to the analysis in Section 2.1, @tbl-headdata3, where the bias was discussed. Although something to note, it does not skew the results. The model indicates that a negative difference in experience and creep score at 10 minutes is associated with an increased likelihood of winning. The difference in gold at 10 minutes and creep score at 15 minutes suggests a small increase in the likelihood of winning. The difference in experience especially gold at 15 minutes increases the likelihood of winning. Based on the first 15 minutes of a game, we can utilize this model to predict the outcome of the winning team. 
 
 
 ```{r, fig.height= 5, fig.width= 3}
 #| echo: false
 #| warning: false
 #| message: false
-#| label: tbl-headdata7
+#| label: tbl-headdata4
 #| tbl-cap: "Model summary of Model 1"
 
 modelsummary(
@@ -422,18 +381,7 @@ modelsummary(
 
 ```
 
-@tbl-headdata7 shows the coefficients of the predictor variables in Model 1. The top half of the table provides the values of the coefficient representing the intercept, and the other coefficients represent the average difference of the winning team for each independent variable.  
-
-
-```{r}
-#| include: false
-#| warning: false
-#| message: false
-
-
-
-#The standard errors of the estimated coefficients is below each respective intercept.
-```
+@tbl-headdata4 shows the coefficients of the predictor variables in Model 1. The table provides the values of the coefficient representing the intercept, and the other coefficients represent the average difference of the winning team for each independent variable.  
 
 ## Model 2: Year 2023
 
@@ -470,24 +418,24 @@ blue_results_2023 <-
   readRDS(file = "blue_results_2023.rds")
 ```
  
-```{r, fig.width= 6, fig.height= 3}
+```{r, fig.width= 4.5, fig.height= 2.5}
 #| echo: false
 #| warning: false
 #| message: false
 #| label: fig-headdata4
-#| fig-cap: "Logistic regression model of Worlds matches from 2023 for difference gold, xp and cs at 10 and 15 minutes relative to win rate"
+#| fig-cap: "Model 2: Logistic regression model of Worlds matches from 2023 for difference gold, xp and cs at 10 and 15 minutes relative to win rate"
 
 
 modelplot(blue_results_2023, conf_level = 0.9) +
   labs(x = "90 per cent credibility interval")
 ```
-@fig-headdata3 displays the logistic regression model of Worlds matches from 2023 for average team difference in gold, experience and creep score at 10 and 15 minutes relative to win rate. Quite similar to Model 1 in @fig-headdata3, the same variables are correlated with a higher probability of winning, expect for 'csdiffat10', which is instead positively correlated with a higher win probability. Observe that the values vary more for all variables, as we are considering a smaller data set compared to Model 1. 
+@fig-headdata4 displays the logistic regression model of Worlds matches from 2023 for average team difference in gold, experience, and creep score at 10 and 15 minutes relative to win rate. Quite similar to Model 1 in @fig-headdata3, the same variables are correlated with a higher probability of winning, expect for 'csdiffat10', which is instead positively correlated with a higher win probability. Observe that the values vary more for all variables, as we are considering a smaller data set compared to Model 1. 
 
 ```{r}
 #| echo: false
 #| warning: false
 #| message: false
-#| label: tbl-headdata8
+#| label: tbl-headdata5
 #| tbl-cap: "Model summary of Model 2"
 
 
@@ -500,26 +448,28 @@ modelsummary(
 
 ```
 
-@tbl-headdata8 shows the coefficients of the predictor variables in Model 2. The top half of the table provides the values of the same coefficients as @tbl-headdata7, but considering data only from 2023. 
+@tbl-headdata5 shows the coefficients of the predictor variables in Model 2. The table provides the values of the same coefficients as @tbl-headdata4, but considering data only from 2023. 
 
 # Discussion
 
 ## Model Analysis
 
-As early game statistics can determine the rest of the game, it is important to consider these early game variables. Considering the correlation of a negative difference in experience and creep score to a higher likelihood of winning, this could suggest that game mechanics are more forgiving towards mistakes during the first 10 minutes of the game. This could also suggest that teams with “scaling” champions, ones that are weaker in the early game due to lack of items and experience, encounter “spikes” in power after the first 10 minutes. These spikes are attributed to becoming stronger due to unlocked abilities, or purchased items that can amplify a champion’s power. Another possibility for these negative differences can be from the losing team acquiring “bounties.” If a team is ahead early in the game, individual champions will likely be assigned a bounty from securing kills - and it will be rewarded to whichever enemy “shuts down” the champion with the bounty. If this is the case, most teams will target the player with the bounty, and attempt to “feed” it to a specific player on their team in order to assist them with gaining gold and experience. This specific player is normally the “carry” of the team, which can benefit the most from a higher income by dealing more damage and/or being harder to kill. If a team’s carry is fed a bounty, they can begin to “snowball” through their power spike, in which they collect more kills and secure more objectives. For this reason, a team having a weaker start to a game suggests they have champions that grow much stronger as the game progresses, and thus benefit in the later stages. Additionally, a losing team can capitalize on the overconfidence or blunders of the winning team, and be awarded bounties that a carry can utilize to reverse the disadvantage.
+As early game statistics can determine the rest of the game, it is important to consider these early game variables. Taking into consideration team statistics, if multiple players of one team secure kills in the early game, they will have a higher amount of gold relative to experience and creep score. According to @fig-headdata3, if a team has a higher gold count at 10 minutes but a lower experience and creep score, we can assume that they have more kills at that stage. This suggests that team kills before 10 minutes is correlated to higher difference statistics for the variables at the 15-minute mark, and thus a higher likelihood of winning. 
 
-Taking into consideration team statistics, if multiple players of one team secure kills in the early game, they will have a higher amount of gold relative to experience and creep score. According to @fig-headdata6, if a team has a higher gold count at 10 minutes but lower experience and creep score, we can assume that they have more kills at that stage. This suggests that team kills before 10 minutes is correlated to higher difference statistics for the variables at the 15 minute mark, and thus a higher likelihood of winning. 
+Considering the correlation of a negative difference in experience and creep score to a higher likelihood of winning, this could suggest that game mechanics are more forgiving towards mistakes during the first 10 minutes of the game. This could also suggest that teams with “scaling” champions, ones that are weaker in the early game due to lack of items and experience, encounter “spikes” in power after the first 10 minutes. These spikes are attributed to becoming stronger due to unlocked abilities, or utility items that can amplify a champion’s power. Another possibility for these negative differences can be from the losing team acquiring “bounties.” If a team is ahead early in the game, individual champions will likely be assigned a bounty from securing kills - and it will be rewarded to whichever enemy “shuts down” the champion with the bounty. If this is the case, most teams will target the player with the bounty, and attempt to “feed” it to a specific player on their team in order to assist them with gaining gold and experience. This specific player is normally the “carry” of the team, which can benefit the most from a higher income by dealing more damage and/or being harder to kill. If a team’s carry is fed a bounty, they can begin to “snowball” through their power spike, in which they collect more kills and secure more objectives. For this reason, a team having a weaker start to a game suggests they have champions that grow much stronger as the game progresses, and thus benefit in the later stages. Additionally, a losing team can capitalize on the overconfidence or blunders of the winning team, and be awarded bounties that a carry can utilize to reverse the disadvantage.
+
+These trends are also ongoing in 2023 shown in @fig-headdata4. The variables are consistent in 2023, with the only difference being that a slightly positive creep score difference is advantageous compared to the overall trend.
 
 Overall, there are many reasons to consider the negative difference in the two variables relative to the rest, and this could suggest that a weaker starter to a game can be more beneficial and increase the likelihood of winning. 
-
-Taking into consideration the many factors that are calculated during a League of Legends match, and the variety in each game, it is hard to determine exact statistics based on professional players. However, this is a good generalization.
 
 
 ## Next Steps
 
-Considering the many factors that lead to a win, as well as the individual gameplay of each player and their collaboration, it is hard to predict what exactly leads to win, even in the early stages of the game. However, it is important to analyze what raises the chances of winning as much as possible. 
+Considering the multitude of factors that contribute to victory, including individual gameplay and team collaboration, predicting the precise aspects that lead to a win, particularly in the game's early phases, is challenging. However, it is important to analyze what variables suggest an increase in the likelihood of winning. 
 
-Due to periodic updates that determine many factors in the game, it is hard to make current predictions for the Worlds Championship in 2024. For better analysis, instead of using past Worlds data, we can consider data from other tournaments played on the current update for teams qualified to play in the Worlds in late 2024, to base our model off of more recent and updated data. A next step worth considering would be to analyze the sources of gold for each team or individual player, and analyze how the sources are correlated to the likelihood of winning. 
+Due to the frequent updates that significantly impact various aspects of the game, predicting outcomes for the 2024 Worlds Championship remains difficult For better analysis, it would be prudent to utilize data from other recent tournaments that have been conducted under the latest game update and involve teams qualified for the 2024 Worlds. This approach ensures that our model is grounded in the most current and relevant data. Additionally, a valuable subsequent analysis could involve examining the origins of gold accumulation for each team or player and exploring the relationship between these sources and their success rates in matches.
+
+Another in-depth analysis could be examining in-game statistics in relation to the updates. Perhaps the developers try to push a certain playstyle through their updates. 
 
 \newpage
 
