@@ -1,0 +1,217 @@
+
+LLM Chat-GPT4:
+
+You
+class_fb_c <- lol_data %>%
+  group_by(champion_class, side) %>%
+  summarise(
+    first_bloods = sum(firstbloodkill, na.rm = TRUE),
+    wins_with_first_blood = sum(firstbloodkill == 1 & result == 1, na.rm = TRUE),
+    win_ratio = wins_with_first_blood / first_bloods,
+    .groups = 'drop'
+  )
+
+ggplot(class_fb_c, aes(x = champion_class, y = win_ratio, color = side)) +
+  geom_point(size = 2.5) +
+  labs(x = "Champion Class", y = "Win Ratio", color = "Side") +
+  theme_minimal() +
+  scale_color_manual(values = c("Red" = "orangered2", "Blue" = "deepskyblue"))
+
+how can i add another set of points showing  the ratios not seperated by side?
+
+GPT
+To add another set of points showing the win ratios not separated by side, you will need to create an additional summary that aggregates across sides for each champion class, and then plot these aggregated points on top of your existing plot. This involves two steps:
+
+Aggregate win ratios across sides for each champion class: Create a summary dataset that calculates the win ratios for each champion class without separating them by side.
+Modify your ggplot code: Add another geom_point layer to your existing ggplot to include these aggregated win ratios.
+Let's walk through these steps:
+
+1. Aggregate Win Ratios Across Sides
+r
+Copy code
+library(dplyr)
+library(ggplot2)
+
+# Assuming lol_data is your dataset
+
+# Your existing code
+class_fb_c <- lol_data %>%
+  group_by(champion_class, side) %>%
+  summarise(
+    first_bloods = sum(firstbloodkill, na.rm = TRUE),
+    wins_with_first_blood = sum(firstbloodkill == 1 & result == 1, na.rm = TRUE),
+    win_ratio = wins_with_first_blood / first_bloods,
+    .groups = 'drop'
+  )
+
+# Additional summary without separating by side
+class_fb_c_aggregated <- lol_data %>%
+  group_by(champion_class) %>%
+  summarise(
+    first_bloods = sum(firstbloodkill, na.rm = TRUE),
+    wins_with_first_blood = sum(firstbloodkill == 1 & result == 1, na.rm = TRUE),
+    win_ratio = wins_with_first_blood / first_bloods,
+    .groups = 'drop'
+  )
+2. Modify Your ggplot Code
+Add a layer to your ggplot for the aggregated data. Since these points are not separated by side, you may want to use a different shape or color to distinguish them.
+
+r
+Copy code
+# Your existing ggplot code with an added layer for aggregated win ratios
+ggplot() +
+  geom_point(data = class_fb_c, aes(x = champion_class, y = win_ratio, color = side), size = 2.5) +
+  geom_point(data = class_fb_c_aggregated, aes(x = champion_class, y = win_ratio), color = "black", shape = 4, size = 3) +
+  labs(x = "Champion Class", y = "Win Ratio", color = "Side") +
+  theme_minimal() +
+  scale_color_manual(values = c("Red" = "orangered2", "Blue" = "deepskyblue"))
+In the added geom_point() layer for the aggregated data:
+
+I've used color = "black" and shape = 4 (which represents an "X") to distinguish these points from those separated by side. You can adjust the color and shape according to your preference.
+This approach keeps your original side-separated points and overlays them with the aggregated data points, providing a clear visual comparison between overall win ratios and those specific to each side.
+
+
+You
+how can i see all unique values in a column 
+
+GPT
+To see all unique values in a column of a data frame in R, you can use the unique() function from base R, which is straightforward and efficient for this task. Here’s how you can apply it to a specific column in a data frame:
+
+Using unique() Function
+Suppose you have a data frame named df and you want to see all unique values in the column named column_name. You can do it as follows:
+
+r
+Copy code
+# Assuming df is your data frame and column_name is the name of your column
+unique_values <- unique(df$column_name)
+
+# To print the unique values
+print(unique_values)
+Example with Data
+If you don't have a specific data frame and are just looking for a demonstration, let's consider a sample data frame:
+
+r
+Copy code
+# Create a sample data frame
+df <- data.frame(
+  column_name = c("apple", "banana", "apple", "orange", "banana", "kiwi")
+)
+
+# Get unique values
+unique_values <- unique(df$column_name)
+
+# Print the unique values
+print(unique_values)
+This will display all unique values in the column_name of the data frame df.
+
+Using dplyr for a Tidyverse Approach
+If you prefer using the dplyr package, particularly if you're already manipulating your data with it, you can use the distinct() function, which can be more convenient when dealing with multiple columns or you want to integrate it into a larger pipeline of data transformations.
+
+r
+Copy code
+# Load the dplyr package
+library(dplyr)
+
+# Assuming df is your data frame and column_name is the column of interest
+unique_values <- df %>%
+  distinct(column_name) %>%
+  pull(column_name)  # Optionally pull the column as a vector
+
+# Print the result
+print(unique_values)
+Both methods will give you the unique values in the specified column, but the approach you choose can depend on your specific workflow or preference for base R versus tidyverse syntax.
+
+You
+```{r, fig.width=7}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-headdata1
+#| fig-cap: "Plot of average difference in Gold, Experience and Creep Score at 10 and 15 minutes by Year"
+
+
+long_data <- diff_averages_year %>%
+  pivot_longer(cols = starts_with("avg"),
+               names_to = "variable",
+               values_to = "value")
+
+
+long_data <- long_data %>%
+  mutate(metric = case_when(
+    str_detect(variable, "golddiff") ~ "Gold Difference",
+    str_detect(variable, "xpdiff") ~ "Experience Difference",
+    str_detect(variable, "csdiff") ~ "Creep Score Difference"
+  ))
+
+
+selected_vars <- long_data %>%
+  filter(str_detect(variable, "golddiff") | str_detect(variable, "xpdiff") | str_detect(variable, "csdiff"))
+
+ggplot(selected_vars, aes(x = year, y = value, color = variable)) +
+  geom_line() +
+  facet_wrap(~ metric, scales = "free_y") +
+  labs(color = "Time", y = "Average Difference") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  ylab("Average value per year")
+
+```
+
+how can i change the colours of the lines so that the bottom 3 are the same colour and the top 3 are the same colour, and create a legend at the bottom to only show those 2 colours
+
+GPT
+To change the colors of the lines in your ggplot such that the bottom three lines (representing data at 10 minutes) have the same color and the top three lines (representing data at 15 minutes) have another color, and to adjust the legend to reflect these two categories, you can follow these steps:
+
+Add a new variable to distinguish between 10 minutes and 15 minutes data.
+Adjust the color aesthetic to use this new variable.
+Customize the legend to show only these two categories.
+Here is how you can implement these changes in your existing R code:
+
+r
+Copy code
+# Assuming diff_averages_year is your initial data frame
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(stringr)
+
+long_data <- diff_averages_year %>%
+  pivot_longer(cols = starts_with("avg"),
+               names_to = "variable",
+               values_to = "value") %>%
+  mutate(
+    metric = case_when(
+      str_detect(variable, "golddiff") ~ "Gold Difference",
+      str_detect(variable, "xpdiff") ~ "Experience Difference",
+      str_detect(variable, "csdiff") ~ "Creep Score Difference"
+    ),
+    Time = case_when(
+      str_detect(variable, "10") ~ "10 minutes",
+      str_detect(variable, "15") ~ "15 minutes"
+    )
+  )
+
+selected_vars <- long_data %>%
+  filter(str_detect(variable, "golddiff") | str_detect(variable, "xpdiff") | str_detect(variable, "csdiff"))
+
+# Plotting
+ggplot(selected_vars, aes(x = year, y = value, color = Time)) +
+  geom_line() +
+  facet_wrap(~ metric, scales = "free_y") +
+  labs(color = "Time Interval", y = "Average Difference") +
+  theme_minimal() +
+  theme(legend.position = "bottom") +
+  ylab("Average value per year") +
+  scale_color_manual(values = c("10 minutes" = "blue", "15 minutes" = "red"))
+Explanation:
+mutate() with Time variable: A new column Time is created to distinguish between data collected at 10 minutes and 15 minutes based on the presence of "10" or "15" in the variable names. This assumes your variable names include these numbers (e.g., golddiffat10, golddiffat15).
+scale_color_manual(): This function is used to manually set the colors for the different time intervals. You can choose any color you prefer instead of "blue" and "red".
+labs() and theme() adjustments: These are tweaked to ensure the plot labels and themes are suitable for your presentation. The legend's title is changed to "Time Interval" to more accurately reflect the data being displayed.
+This approach will result in a plot where lines representing data from 10 minutes are one color and lines from 15 minutes are another, with a legend at the bottom indicating these two categories. Adjust the colors as needed to fit your presentation style or color blindness accessibility.
+
+
+
+
+
+

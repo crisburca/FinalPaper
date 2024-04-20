@@ -469,7 +469,7 @@ Considering the multitude of factors that contribute to victory, including indiv
 
 Due to the frequent updates that significantly impact various aspects of the game, predicting outcomes for the 2024 Worlds Championship remains difficult For better analysis, it would be prudent to utilize data from other recent tournaments that have been conducted under the latest game update and involve teams qualified for the 2024 Worlds. This approach ensures that our model is grounded in the most current and relevant data. Additionally, a valuable subsequent analysis could involve examining the origins of gold accumulation for each team or player and exploring the relationship between these sources and their success rates in matches.
 
-Another in-depth analysis could be examining in-game statistics in relation to the updates. Perhaps the developers try to push a certain playstyle through their updates. 
+Another detailed analysis could involve scrutinizing in-game statistics in the context of game updates. It is possible that developers are aiming to promote a specific playstyle through these updates, influencing how strategies evolve over time.
 
 \newpage
 
